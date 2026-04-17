@@ -1,6 +1,3 @@
-# Space Curves (spacecurves, Uzay Eğrileri): Keçeci Sayıları (Keçeci Conjecture)
----
-
 # Space Curves (spacecurves, Uzay Eğrileri) <img src="docs/logo.jpg" alt="Space Curves (spacecurves, Uzay Eğrileri)" align="right" height="140"/>
 
 [![PyPI version](https://badge.fury.io/py/spacecurves.svg)](https://badge.fury.io/py/spacecurves/)
