@@ -1,0 +1,36 @@
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools>=82.0.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spacecurves"
+version = "0.1.0"
+dynamic = ["keywords", "maintainers"]
+license = "GPL-3.0-or-later"  # SPDX ID
+
+authors = [
+    { name="Mehmet Keçeci", email="mkececi@yaani.com" },
+]
+description = "Space Curves (spacecurves, Uzay Eğrileri): Uzay Dolduran Eğriler Modülü"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov", "pytest-mock", "ruff", "numpy"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[project.urls]
+Homepage = "https://github.com/WhiteSymmetry/spacecurves"
+Repository = "https://github.com/WhiteSymmetry/spacecurves"
