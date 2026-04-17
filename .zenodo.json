@@ -1,0 +1,13 @@
+{
+  "title": "spacecurves",
+  "upload_type": "software",
+  "description": "Space Curves (spacecurves, Uzay Eğrileri): Uzay Dolduran Eğriler Modülü",
+  "creators": [
+    {
+      "name": "Keçeci, Mehmet",
+      "orcid": "0000-0001-9937-9839"
+    }
+  ],
+  "license": "agpl-license",
+  "access_right": "open"
+}
