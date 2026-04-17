@@ -2,9 +2,9 @@
 
 [![PyPI version](https://badge.fury.io/py/spacecurves.svg)](https://badge.fury.io/py/spacecurves/)
 [![License: AGPL](https://img.shields.io/badge/License-AGPL-yellow.svg)](https://opensource.org/licenses/AGPL)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15377659.svg)](https://doi.org/10.5281/zenodo.15377659)
-[![WorkflowHub DOI](https://img.shields.io/badge/DOI-10.48546%2Fworkflowhub.datafile.14.2-blue)](https://doi.org/10.48546/workflowhub.datafile.14.2)
-[![figshare DOI](https://img.shields.io/badge/DOI-10.6084/m9.figshare.29816414-blue)](https://doi.org/10.6084/m9.figshare.29816414)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.***.svg)](https://doi.org/10.5281/zenodo.***)
+[![WorkflowHub DOI](https://img.shields.io/badge/DOI-10.48546%2Fworkflowhub.datafile.***-blue)](https://doi.org/10.48546/workflowhub.datafile.***)
+[![figshare DOI](https://img.shields.io/badge/DOI-10.6084/m9.figshare.***-blue)](https://doi.org/10.6084/m9.figshare.***)
 
 [![Anaconda-Server Badge](https://anaconda.org/bilgi/spacecurves/badges/version.svg)](https://anaconda.org/bilgi/spacecurves)
 [![Anaconda-Server Badge](https://anaconda.org/bilgi/spacecurves/badges/latest_release_date.svg)](https://anaconda.org/bilgi/spacecurves)
@@ -52,8 +52,8 @@
         <tr>
             <td style="text-align: center;">DOI</td>
             <td style="text-align: center;">
-                <a href="https://doi.org/10.5281/zenodo.15377659">
-                    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15377659.svg" alt="DOI" height="18"/>
+                <a href="https://doi.org/10.5281/zenodo.***">
+                    <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.***.svg" alt="DOI" height="18"/>
                 </a>
             </td>
         </tr>
