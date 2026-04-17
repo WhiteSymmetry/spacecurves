@@ -1,0 +1,32 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: spacecurves
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file. / Eğer bu yazılımı
+  kullanıyorsanız, lütfen bu dosyadaki meta   verileri
+  kullanarak atıfta bulunun.
+type: software
+authors:
+  - given-names: Mehmet
+    family-names: Keçeci
+    email: bilginomi@yaani.com
+    orcid: 'https://orcid.org/0000-0001-9937-9839'
+identifiers:
+  - type: doi
+    value: 
+repository-code: 'https://github.com/WhiteSymmetry/spacecurves'
+url: 'https://github.com/WhiteSymmetry/spacecurves'
+repository: 'https://anaconda.org/bilgi/spacecurves'
+repository-artifact: 'https://pypi.org/project/spacecurves/'
+abstract: >-
+  Space Curves (spacecurves, Uzay Eğrileri): Uzay Dolduran Eğriler Modülü
+keywords:
+  - space
+  - curves
+license: AGPL-3.0-or-later
+commit: 'Revision: 1'
+version: 0.1.0
+date-released: '2026-04-18'
