@@ -4,19 +4,19 @@ schema_version: 1
 # this sets up "context variables" (in this case name and version) that
 # can later be used in Jinja expressions
 context:
-  version: 0.1.0
+  version: 0.1.1
   name: spacecurves
 
 # top level package information (name and version)
 package:
   name: spacecurves
-  version: 0.1.0
+  version: 0.1.1
 
 # location to get the source from
 #`source` are `url`, `sha256`, `md5`, `patches`, `file_name` and `target_directory`
 source:
-  url: https://files.pythonhosted.org/packages/bc/ed/b69939817d668dc10d0c08bbf5162bb9ab2bc4e3004e82995f8b0ae8b0b6/spacecurves-0.1.0.tar.gz
-  sha256: 457af295d17251fafa3b78fddf02c5eab42ff554d5f8a4d67212d01c73f147e6
+  url: 
+  sha256: 
 
 # build number (should be incremented if a new build is made, but version is not incrementing)
 build:
