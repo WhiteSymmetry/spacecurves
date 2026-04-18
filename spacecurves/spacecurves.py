@@ -235,7 +235,7 @@ class SpaceFillingCurve:
 
         # Moore için özel kurulum
         if curve_type == CurveType.MOORE:
-            self._moore_curve = self._create_moore_curve(p)
+            self._moore_curve = self._generate_moore_curve(p)
 
             # 🔥 force generate
             _ = self._moore_curve._generate()
@@ -248,7 +248,7 @@ class SpaceFillingCurve:
         if seed is not None:
             np.random.seed(seed)
 
-    def _create_moore_curve(self, p: int):
+    def _generate_moore_curve(self, p: int):
         return MooreCurve(p)
 
 
@@ -751,7 +751,7 @@ if __name__ == "__main__":
 
 
     for p in [2, 3, 4]:
-        moore = MooreCurve(p)  # veya self._create_moore_curve(p)
+        moore = MooreCurve(p)  # veya self._generate_moore_curve(p)
 
         start = moore.transform(0)
         end = moore.transform(moore.total_points - 1)
