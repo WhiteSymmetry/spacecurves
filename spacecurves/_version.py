@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # _version.py
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __license__ = "AGPL-3.0-or-later"
 __description__ = "Space Curves (spacecurves, Uzay Eğrileri): Uzay Dolduran Eğriler Modülü"
 __author__ = "Mehmet Keçeci"
