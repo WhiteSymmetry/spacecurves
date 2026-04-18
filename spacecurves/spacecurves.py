@@ -1,5 +1,5 @@
 """
-spacecurves.py - Uzay Dolduran Eğriler Modülü (ÖZGÜN IMPLEMENTASYON)
+spacecurves.py - Uzay Dolduran Eğriler Modülü
 
 Bu modül, Hilbert eğrisi dönüşümü için orijinal algoritmayı temel alan
 tamamen özgün bir implementasyondur. Tüm testler başarıyla geçmiştir.
