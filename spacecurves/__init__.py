@@ -26,13 +26,14 @@ from __future__ import annotations
 import warnings
 
 # Paket sürüm numarası
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "Mehmet Keçeci"
 __email__ = "mkececi@yaani.com"
 __description__ = "Space Curves (spacecurves, Uzay Eğrileri): Uzay Dolduran Eğriler Modülü"
 
 # Ana Sınıflar
 from .spacecurves import (
+    MooreCurve,
     SpaceFillingCurve,
     CurveType,
     CurveStats,
@@ -46,6 +47,7 @@ from .spacecurves import (
 # Public API - from * import ile erişilebilenler
 __all__ = [
     # Ana sınıflar
+    'MooreCurve',
     'SpaceFillingCurve',
     'CurveType',
     'CurveStats',
