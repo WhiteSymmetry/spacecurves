@@ -93,7 +93,7 @@
 
 - **Multi-dimensional support**: 1-5 dimensions
 - **Configurable depth**: 1-10 iterations (2^p grid size)
-- **4 curve types**: Hilbert, Morton, Moore, Altair
+- **4 curve types**: Hilbert, Morton
 - **High performance**: LRU cache support, batch operations
 - **Neighbor search**: Find neighbors in Hilbert space
 - **Image compression**: Hilbert curve-based image compression
@@ -266,7 +266,7 @@ Email: mkececi@yaani.com
 ### ✨ Özellikler
 
 - **Çok boyutlu destek**: 1-5 boyut
-- **Ayarlanabilir derinlik**: 1-10 iterasyon (2^p grid boyutu)
+- **Ayarlanabilir derinlik**: 1-16 iterasyon (2^p grid boyutu)
 - **4 eğri tipi**: Hilbert, Morton, Moore, Altair
 - **Yüksek performans**: LRU önbellek, toplu işlemler
 - **Komşuluk arama**: Hilbert uzayında komşu bulma
@@ -275,6 +275,8 @@ Email: mkececi@yaani.com
 - **Hilbert sıralama**: Mekansal veri düzenleme
 - **Grid sistemi**: Hilbert tabanlı veri yapısı
 - **Rota optimizasyonu**: TSP benzeri rota optimizasyonu
+- Görselleştirme araçları (HilbertVisualizer)
+- Yaklaşık kümeleme (HilbertClustering)
 
 ### 🚀 Hızlı Başlangıç
 
