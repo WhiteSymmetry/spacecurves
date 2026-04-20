@@ -504,3 +504,34 @@ Copyright (c) 2025-2026 Mehmet Keçeci
 1. https://pypi.org/project/spacecurves/
 2. https://anaconda.org/bilgi/spacecurves
 3. https://prefix.dev/channels/bilgi/packages/spacecurves
+
+---
+
+## License / Lisans
+
+This project is licensed under the AGPL3.0 or Later License. See the `LICENSE` file for details.
+
+## Citation
+
+If this library was useful to you in your research, please cite us. Following the [GitHub citation standards](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-on-github/about-citation-files), here is the recommended citation.
+
+### BibTeX
+
+```bibtex
+@misc{kececi_2026_19672791,
+  author       = {Keçeci, Mehmet},
+  title        = {spacecurves},
+  month        = apr,
+  year         = 2026,
+  publisher    = {Zenodo},
+  version      = {0.1.3},
+  doi          = {10.5281/zenodo.19672791},
+  url          = {https://doi.org/10.5281/zenodo.19672791},
+}
+```
+
+### APA
+
+```
+
+Keçeci, M. (2026). spacecurves (0.1.3). Open Science Articles (OSAs), Zenodo. https://doi.org/10.5281/zenodo.19672791
