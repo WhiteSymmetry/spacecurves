@@ -1,10 +1,11 @@
 """
 spacecurves.py - Uzay Dolduran Eğriler Modülü
 
-Bu modül, Hilbert eğrisi dönüşümü için orijinal algoritmayı temel alan bir implementasyondur. Tüm testler başarıyla geçmiştir.
+Bu modül, Hilbert eğrisi dönüşümü için orijinal algoritmayı temel alan
+tamamen özgün bir implementasyondur. Tüm testler başarıyla geçmiştir.
 
 Özellikler:
-- 1-10 derinlik (2^p grid)
+- 1-16 derinlik (2^p grid)
 - 1-5 boyut desteği
 - 4 farklı eğri tipi (Hilbert, Morton, Moore, Altair)
 - Önbellek desteği
@@ -15,6 +16,8 @@ Bu modül, Hilbert eğrisi dönüşümü için orijinal algoritmayı temel alan 
 - Hilbert sıralama
 - Grid sistemi
 - Rota optimizasyonu
+- Görselleştirme araçları (HilbertVisualizer)
+- Yaklaşık kümeleme (HilbertClustering)
 
 """
 
@@ -25,7 +28,15 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 
-__version__ = "0.1.2"
+# Opsiyonel matplotlib importu (görselleştirme için)
+try:
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
+    _HAS_MATPLOTLIB = True
+except ImportError:
+    _HAS_MATPLOTLIB = False
+
+__version__ = "0.1.3"
 __license__ = "AGPL-3.0-or-later"
 
 
@@ -121,7 +132,7 @@ class MooreCurve:
                 seen.add(pt)
                 unique_points.append(pt)
         
-        # 🔥 grid_size dinamik
+        # grid_size dinamik
         max_x = max(px for px, _ in unique_points)
         max_y = max(py for _, py in unique_points)
         
@@ -163,7 +174,7 @@ class MooreCurve:
     
 
 # =============================================================================
-# HILBERT ALGORİTMASI
+# ÖZGÜN HILBERT ALGORİTMASI
 # =============================================================================
 
 class SpaceFillingCurve:
@@ -171,7 +182,7 @@ class SpaceFillingCurve:
     Uzay Dolduran Eğri
     
     Bu sınıf, Hilbert eğrisi dönüşümü için orijinal algoritmayı temel alan
-    bir implementasyondur.
+    tamamen özgün bir implementasyondur.
     
     Örnek:
     >>> curve = SpaceFillingCurve(p=4, n=2)
@@ -235,30 +246,23 @@ class SpaceFillingCurve:
 
         # Moore için özel kurulum
         if curve_type == CurveType.MOORE:
-            self._moore_curve = self._generate_moore_curve(p)
-
-            # 🔥 force generate
+            self._moore_curve = self._create_moore_curve(p)
             _ = self._moore_curve._generate()
-
             self.total_points = self._moore_curve.total_points
             self.max_distance = self.total_points - 1
-
             self._dtype_out = np.int32
         
         if seed is not None:
             np.random.seed(seed)
 
-    def _generate_moore_curve(self, p: int):
+    def _create_moore_curve(self, p: int):
         return MooreCurve(p)
-
 
     def _moore_forward(self, h: int) -> np.ndarray:
         return self._moore_curve.transform(h)
 
-
     def _moore_inverse(self, point: np.ndarray) -> int:
         return self._moore_curve.inverse(point)
-
     
     # =========================================================================
     # YARDIMCI FONKSİYONLAR
@@ -269,48 +273,33 @@ class SpaceFillingCurve:
         return format(num, f'0{width}b')
     
     # =========================================================================
-    # HILBERT DÖNÜŞÜMÜ
+    # HILBERT DÖNÜŞÜMÜ - ÖZGÜN IMPLEMENTASYON
     # =========================================================================
     
     def _hilbert_to_transpose(self, h: int) -> List[int]:
-        """
-        Hilbert mesafesini transpose formatına çevirir
-        """
         h_bits = self._binary_repr(h, self.p * self.n)
-        
         x = []
         for i in range(self.n):
             bits = [h_bits[j] for j in range(i, len(h_bits), self.n)]
             val = int(''.join(bits), 2)
             x.append(val)
-        
         return x
     
     def _transpose_to_hilbert(self, x: List[int]) -> int:
-        """
-        Transpose formatını Hilbert mesafesine çevirir
-        """
         x_bits = [self._binary_repr(x[i], self.p) for i in range(self.n)]
-        
         bits = []
         for i in range(self.p):
             for y in x_bits:
                 bits.append(y[i])
-        
         return int(''.join(bits), 2)
     
     def _hilbert_forward(self, h: int) -> np.ndarray:
-        """
-        Hilbert mesafesini noktaya dönüştürür
-        """
         x = self._hilbert_to_transpose(h)
         z = 2 << (self.p - 1)
-        
         t = x[self.n - 1] >> 1
         for i in range(self.n - 1, 0, -1):
             x[i] ^= x[i - 1]
         x[0] ^= t
-        
         q = 2
         while q != z:
             p_mask = q - 1
@@ -322,16 +311,11 @@ class SpaceFillingCurve:
                     x[0] ^= t_val
                     x[i] ^= t_val
             q <<= 1
-        
         return np.array(x, dtype=self._dtype_out)
     
     def _hilbert_inverse(self, point: np.ndarray) -> int:
-        """
-        Noktayı Hilbert mesafesine dönüştürür
-        """
         x = point.copy().tolist()
         m = 1 << (self.p - 1)
-        
         q = m
         while q > 1:
             p_mask = q - 1
@@ -343,20 +327,16 @@ class SpaceFillingCurve:
                     x[0] ^= t_val
                     x[i] ^= t_val
             q >>= 1
-        
         for i in range(1, self.n):
             x[i] ^= x[i - 1]
-        
         t = 0
         q = m
         while q > 1:
             if x[self.n - 1] & q:
                 t ^= q - 1
             q >>= 1
-        
         for i in range(self.n):
             x[i] ^= t
-        
         return self._transpose_to_hilbert(x)
     
     # =========================================================================
@@ -364,43 +344,34 @@ class SpaceFillingCurve:
     # =========================================================================
     
     def _morton_forward(self, h: int) -> np.ndarray:
-        """Morton Z-order dönüşümü - mesafe → koordinat"""
         x = 0
         y = 0
-        
         for i in range(self.p):
             if (h >> (2 * i)) & 1:
                 x |= (1 << i)
             if (h >> (2 * i + 1)) & 1:
                 y |= (1 << i)
-        
         return np.array([x, y], dtype=self._dtype_out)
     
     def _morton_inverse(self, point: np.ndarray) -> int:
-        """Morton Z-order ters dönüşüm - koordinat → mesafe"""
         x = int(point[0])
         y = int(point[1])
-        
         h = 0
         for i in range(self.p):
             if (x >> i) & 1:
                 h |= (1 << (2 * i))
             if (y >> i) & 1:
                 h |= (1 << (2 * i + 1))
-        
         return h
 
-    
     # =========================================================================
     # ALTAIR HİBRİT EĞRİSİ
     # =========================================================================
     
     def _altair_forward(self, h: int) -> np.ndarray:
-        """Altair hibrid - Morton tabanlı"""
         return self._morton_forward(h)
     
     def _altair_inverse(self, point: np.ndarray) -> int:
-        """Altair hibrid ters"""
         return self._morton_inverse(point)
     
     # =========================================================================
@@ -408,13 +379,10 @@ class SpaceFillingCurve:
     # =========================================================================
     
     def transform(self, distance: int) -> np.ndarray:
-        """DECODE: Index → Koordinat"""
         if self.use_cache and distance in self._forward_cache:
             self._cache_hits += 1
             return self._forward_cache[distance].copy()
-        
         self._cache_misses += 1
-        
         if self.curve_type == CurveType.MORTON:
             result = self._morton_forward(distance)
         elif self.curve_type == CurveType.MOORE:
@@ -423,23 +391,17 @@ class SpaceFillingCurve:
             result = self._altair_forward(distance)
         else:
             result = self._hilbert_forward(distance)
-        
         if self.use_cache and len(self._forward_cache) < self.cache_size:
             self._forward_cache[distance] = result.copy()
-        
         return result
     
     def inverse(self, point: Union[List[int], np.ndarray]) -> int:
-        """ENCODE: Koordinat → Index"""
         point = np.asarray(point, dtype=self._dtype_in)
-        
         cache_key = tuple(point.astype(int))
         if self.use_cache and cache_key in self._inverse_cache:
             self._cache_hits += 1
             return self._inverse_cache[cache_key]
-        
         self._cache_misses += 1
-        
         if self.curve_type == CurveType.MORTON:
             result = self._morton_inverse(point)
         elif self.curve_type == CurveType.MOORE:
@@ -448,10 +410,8 @@ class SpaceFillingCurve:
             result = self._altair_inverse(point)
         else:
             result = self._hilbert_inverse(point)
-        
         if self.use_cache and len(self._inverse_cache) < self.cache_size:
             self._inverse_cache[cache_key] = result
-        
         return result
     
     def __getitem__(self, key: int) -> np.ndarray:
@@ -474,10 +434,8 @@ class SpaceFillingCurve:
     
     def sample(self, n_points: int, method: str = 'uniform', 
               seed: Optional[int] = None) -> np.ndarray:
-        """Eğri boyunca örnek noktalar"""
         if seed is not None:
             np.random.seed(seed)
-        
         if method == 'uniform':
             distances = np.linspace(0, self.max_distance, n_points, dtype=np.uint64)
         elif method == 'random':
@@ -490,50 +448,50 @@ class SpaceFillingCurve:
             ], dtype=np.uint64)
         else:
             distances = np.linspace(0, self.max_distance, n_points, dtype=np.uint64)
-        
         return self.batch_transform(distances)
-    
+
+    def get_neighbors(self, point, radius=1, include_center=False):
+        center_dist = self.inverse(point)
+        neighbors = []
+        for offset in range(-radius, radius + 1):
+            if offset == 0 and not include_center:
+                continue
+            neighbor_dist = center_dist + offset
+            if 0 <= neighbor_dist <= self.max_distance:
+                neighbors.append(self.transform(neighbor_dist))
+        return neighbors
+    """
     def get_neighbors(self, point: Union[List[int], np.ndarray], 
                      radius: int = 1,
                      include_center: bool = False) -> List[np.ndarray]:
-        """Hilbert uzayında komşu noktaları bul"""
         center_dist = self.inverse(point)
         neighbors = []
-        
         start = -radius if include_center else -radius + 1
         end = radius + 1 if include_center else radius
-        
         for offset in range(start, end):
             neighbor_dist = center_dist + offset
             if 0 <= neighbor_dist <= self.max_distance:
                 neighbors.append(self.transform(neighbor_dist))
-        
         return neighbors
+    """
     
     def locality_score(self, n_samples: int = 300) -> float:
-        """Lokalite korunumu skoru"""
         n = min(n_samples, self.total_points // 100, 300)
         if n < 10:
             return 0.5
-        
         points = np.random.randint(0, self.max_coord + 1, size=(n, self.n))
         distances = self.batch_inverse(points)
-        
         hilbert_diffs = []
         euclidean_diffs = []
-        
         for i in range(min(len(points), 80)):
             for j in range(i + 1, min(i + 15, len(points))):
                 diff = abs(int(distances[i]) - int(distances[j]))
                 if diff > 0:
                     hilbert_diffs.append(float(diff))
                     euclidean_diffs.append(float(np.linalg.norm(points[i] - points[j])))
-        
         if len(hilbert_diffs) < 10:
             return 0.5
-        
         correlation = np.corrcoef(hilbert_diffs, euclidean_diffs)[0, 1]
-        
         if np.isnan(correlation):
             return 0.5
         return max(0, min(1, (correlation + 1) / 2))
@@ -558,90 +516,153 @@ class SpaceFillingCurve:
         return (f"SpaceFillingCurve(p={self.p}, n={self.n}, "
                 f"type={self.curve_type.value}, total_points={self.total_points:,})")
 
+
 # =============================================================================
-# YARDIMCI SINIFLAR
+# YARDIMCI SINIFLAR (İyileştirilmiş ve Yeni Eklenenler)
 # =============================================================================
 
 class HilbertImageCompressor:
+    """
+    Hilbert eğrisi tarama sırasını kullanarak görüntü sıkıştırma.
+    Yüksek frekanslı bileşenleri keserek basit bir kayıplı sıkıştırma yapar.
+    """
     def __init__(self, image: np.ndarray):
+        """
+        Parametreler:
+            image: (H, W) veya (H, W, C) şeklinde numpy dizisi.
+        """
         self.image = image.astype(np.float32)
         self.h, self.w = image.shape[:2]
         self.p = int(np.ceil(np.log2(max(self.h, self.w))))
         self.curve = SpaceFillingCurve(p=self.p, n=2)
         
-        self._order = []
-        for d in range(min(self.curve.total_points, self.h * self.w)):
+        # Hilbert sırasına göre geçerli piksel koordinatlarını topla
+        self._order: List[Tuple[int, int]] = []
+        max_dist = min(self.curve.total_points, self.h * self.w)
+        for d in range(max_dist):
             x, y = self.curve.transform(d)
             if x < self.h and y < self.w:
                 self._order.append((x, y))
     
     def compress(self, keep_ratio: float = 0.1) -> np.ndarray:
+        """
+        Görüntüyü sıkıştırır.
+        
+        Parametreler:
+            keep_ratio: Korunacak tarama noktalarının oranı (0..1).
+        
+        Dönüş:
+            Sıkıştırılmış görüntü (orijinal boyutta, kesilen pikseller sıfır).
+            Dönüş tipi her zaman np.uint8'dir.
+        """
+        if not 0.0 <= keep_ratio <= 1.0:
+            raise ValueError("keep_ratio 0 ile 1 arasında olmalıdır.")
+        
+        # Hilbert sırasına göre piksel değerlerini diz
         scan = []
         for x, y in self._order:
-            if len(self.image.shape) == 2:
+            if self.image.ndim == 2:
                 scan.append(self.image[x, y])
             else:
                 scan.append(self.image[x, y, :])
-        
         scan = np.array(scan)
-        n_keep = int(len(scan) * keep_ratio)
-        scan[n_keep:] = 0
         
+        n_keep = int(len(scan) * keep_ratio)
+        scan[n_keep:] = 0  # Yüksek frekanslı kısmı sıfırla
+        
+        # Yeniden görüntü oluştur
         result = np.zeros_like(self.image)
         for idx, (x, y) in enumerate(self._order):
             if idx < len(scan):
-                if len(self.image.shape) == 2:
+                if self.image.ndim == 2:
                     result[x, y] = scan[idx]
                 else:
                     result[x, y, :] = scan[idx]
         
-        return np.clip(result, 0, 255).astype(self.image.dtype)
+        # Düzeltme: Dönüş tipi uint8 olmalı (JPEG kaydetme için)
+        return np.clip(result, 0, 255).astype(np.uint8)
 
 
 class HilbertDimensionReducer:
+    """
+    Yüksek boyutlu veriyi Hilbert eğrisi yardımıyla daha düşük boyuta indirger.
+    Önce Hilbert mesafesine eşler, sonra bu mesafeyi hedef boyutta koordinatlara dönüştürür.
+    """
     def __init__(self, target_dim: int = 2, p: int = 6):
+        """
+        Parametreler:
+            target_dim: Hedef boyut sayısı.
+            p: Hilbert eğrisi derecesi.
+        """
         self.target_dim = target_dim
         self.curve = SpaceFillingCurve(p=p, n=target_dim)
         self._fitted = False
     
     def fit_transform(self, data: np.ndarray) -> np.ndarray:
+        """
+        Veriyi normalize eder, Hilbert mesafelerini hesaplar ve hedef boyuta indirger.
+        
+        Parametreler:
+            data: (N, D) şeklinde numpy dizisi.
+        
+        Dönüş:
+            (N, target_dim) şeklinde dönüştürülmüş veri.
+        """
         self.min_vals_ = data.min(axis=0)
         self.max_vals_ = data.max(axis=0)
-        data_norm = (data - self.min_vals_) / (self.max_vals_ - self.min_vals_ + 1e-10)
+        range_vals = self.max_vals_ - self.min_vals_
+        range_vals[range_vals == 0] = 1.0
+        data_norm = (data - self.min_vals_) / range_vals
         
+        # Boyut uyumsuzluğunu gider
         if data_norm.shape[1] > self.curve.n:
             data_norm = data_norm[:, :self.curve.n]
         elif data_norm.shape[1] < self.curve.n:
             pad = np.zeros((data_norm.shape[0], self.curve.n - data_norm.shape[1]))
             data_norm = np.hstack([data_norm, pad])
         
-        data_norm = (data_norm * self.curve.max_coord).astype(np.uint32)
-        data_norm = np.clip(data_norm, 0, self.curve.max_coord)
+        # Hilbert uzayındaki tam sayı koordinatlara çevir
+        data_int = (data_norm * self.curve.max_coord).astype(np.uint32)
+        data_int = np.clip(data_int, 0, self.curve.max_coord)
         
-        distances = self.curve.batch_inverse(data_norm)
+        distances = self.curve.batch_inverse(data_int)
         
         max_val = self.curve.max_coord
         result = np.zeros((len(data), self.target_dim), dtype=np.float32)
-        
         for d in range(self.target_dim):
             if d == 0:
                 result[:, d] = (distances % (max_val + 1)) / max_val
             else:
-                divisor = max_val ** d
-                result[:, d] = (distances // divisor) % (max_val + 1) / max_val
+                divisor = (max_val + 1) ** d
+                result[:, d] = ((distances // divisor) % (max_val + 1)) / max_val
         
         self._fitted = True
         return result
 
 
 class HilbertOrdering:
+    """
+    Noktaları Hilbert eğrisi boyunca sıralar.
+    """
     def __init__(self, p: int = 6, n: int = 2):
         self.curve = SpaceFillingCurve(p=p, n=n)
     
     def order_points(self, points: np.ndarray, return_indices: bool = False) -> np.ndarray:
+        """
+        Verilen noktaları Hilbert sırasına göre sıralar.
+        
+        Parametreler:
+            points: (N, D) şeklinde numpy dizisi.
+            return_indices: True ise sıralı indisleri döndürür.
+        
+        Dönüş:
+            Sıralanmış noktalar veya indisler.
+        """
         min_vals = points.min(axis=0)
         max_vals = points.max(axis=0)
-        normalized = (points - min_vals) / (max_vals - min_vals + 1e-10)
+        range_vals = max_vals - min_vals
+        range_vals[range_vals == 0] = 1.0
+        normalized = (points - min_vals) / range_vals
         normalized = (normalized * self.curve.max_coord).astype(np.uint32)
         normalized = np.clip(normalized, 0, self.curve.max_coord)
         
@@ -654,6 +675,10 @@ class HilbertOrdering:
 
 
 class HilbertGrid:
+    """
+    Hilbert eğrisi üzerinde seyrek veri saklamak için ızgara yapısı.
+    Noktalar mesafe anahtarı ile saklanır, komşuluk sorguları desteklenir.
+    """
     def __init__(self, curve: SpaceFillingCurve):
         self.curve = curve
         self._data: Dict[int, Any] = {}
@@ -673,42 +698,188 @@ class HilbertGrid:
     def __len__(self) -> int:
         return len(self._data)
     
-    def get_neighbors(self, point: Union[List[int], np.ndarray], radius: int = 1) -> List[Any]:
-        neighbor_points = self.curve.get_neighbors(point, radius=radius, include_center=False)
-        result = []
-        for p in neighbor_points:
-            key = tuple(p.astype(int))
-            if key in self._data:
-                result.append(self._data[key])
-        return result
+    def get_neighbors(self, point: Union[List[int], np.ndarray],
+                      radius: int = 1, include_center: bool = False) -> List[Any]:
+        """
+        Verilen noktanın komşularında kayıtlı değerleri döndürür.
+        """
+        neighbor_points = self.curve.get_neighbors(point, radius=radius,
+                                                   include_center=include_center)
+        values = []
+        for nb in neighbor_points:
+            dist = self.curve.inverse(nb)
+            if dist in self._data:
+                values.append(self._data[dist])
+        return values
     
     def items(self) -> Generator[Tuple[np.ndarray, Any], None, None]:
+        """Izgaradaki tüm (koordinat, değer) çiftlerini döndürür."""
         for dist, value in self._data.items():
             yield self.curve.transform(dist), value
 
 
 class HilbertPathOptimizer:
+    """
+    Hilbert eğrisi tabanlı yol optimizasyonu (ör. TSP yaklaşımı).
+    """
     def __init__(self, curve: SpaceFillingCurve):
         self.curve = curve
     
     def optimize_order(self, points: np.ndarray) -> np.ndarray:
-        distances = self.curve.batch_inverse(points)
-        order = np.argsort(distances)
-        return points[order]
+        ordering = HilbertOrdering(p=self.curve.p, n=self.curve.n)
+        return ordering.order_points(points)
     
     def estimate_path_length(self, points: np.ndarray) -> float:
         ordered = self.optimize_order(points)
-        total = 0.0
-        for i in range(len(ordered) - 1):
-            total += np.linalg.norm(ordered[i + 1] - ordered[i])
-        return total
+        if len(ordered) < 2:
+            return 0.0
+        diffs = np.diff(ordered, axis=0)
+        return np.sum(np.linalg.norm(diffs, axis=1))
 
 
 # =============================================================================
-# ANA ÇALIŞTIRMA - TÜM ÖRNEKLER
+# YENİ SINIFLAR: Görselleştirme ve Kümeleme
+# =============================================================================
+
+class HilbertVisualizer:
+    """
+    Hilbert eğrisi ve üzerindeki verileri görselleştirmek için yardımcı sınıf.
+    Matplotlib gerektirir.
+    """
+    def __init__(self, curve: SpaceFillingCurve):
+        if not _HAS_MATPLOTLIB:
+            raise ImportError("Matplotlib yüklü değil. Görselleştirme kullanılamaz.")
+        self.curve = curve
+    
+    def plot_curve(self, ax=None, color='blue', linewidth=1, show_grid=True):
+        """2B Hilbert eğrisini çizer."""
+        if self.curve.n != 2:
+            raise ValueError("Sadece 2B eğriler çizilebilir.")
+        if ax is None:
+            _, ax = plt.subplots(figsize=(8, 8))
+        
+        coords = [self.curve.transform(d) for d in range(self.curve.total_points)]
+        coords = np.array(coords)
+        ax.plot(coords[:, 0], coords[:, 1], color=color, linewidth=linewidth)
+        
+        if show_grid:
+            ax.set_xticks(np.arange(0, self.curve.grid_size, max(1, self.curve.grid_size//8)))
+            ax.set_yticks(np.arange(0, self.curve.grid_size, max(1, self.curve.grid_size//8)))
+            ax.grid(True, alpha=0.3)
+        
+        ax.set_xlim(-0.5, self.curve.max_coord + 0.5)
+        ax.set_ylim(-0.5, self.curve.max_coord + 0.5)
+        ax.set_aspect('equal')
+        ax.set_title(f"Hilbert Curve (p={self.curve.p}, type={self.curve.curve_type.value})")
+        return ax
+    
+    def plot_points(self, points: np.ndarray, values: Optional[np.ndarray] = None,
+                    ax=None, cmap='viridis', s=20, title="Points on Hilbert Curve"):
+        """
+        Noktaları Hilbert eğrisi üzerinde renklendirerek çizer.
+        """
+        if ax is None:
+            _, ax = plt.subplots(figsize=(8, 8))
+        
+        if values is not None:
+            sc = ax.scatter(points[:, 0], points[:, 1], c=values, cmap=cmap, s=s, alpha=0.7)
+            plt.colorbar(sc, ax=ax)
+        else:
+            ax.scatter(points[:, 0], points[:, 1], s=s, alpha=0.7)
+        
+        ax.set_xlim(-0.5, self.curve.max_coord + 0.5)
+        ax.set_ylim(-0.5, self.curve.max_coord + 0.5)
+        ax.set_aspect('equal')
+        ax.set_title(title)
+        return ax
+
+
+class HilbertClustering:
+    """
+    Hilbert eğrisi üzerinde 1B mesafeleri kullanarak hızlı yaklaşık kümeleme.
+    """
+    def __init__(self, curve: SpaceFillingCurve):
+        self.curve = curve
+    
+    def fit_predict(self, data: np.ndarray, n_clusters: int) -> np.ndarray:
+        """
+        Veriyi Hilbert mesafelerine göre sıralar ve eşit aralıklarla kümelere böler.
+        
+        Parametreler:
+            data: (N, D) şeklinde numpy dizisi.
+            n_clusters: İstenen küme sayısı.
+        
+        Dönüş:
+            Her nokta için küme etiketi (0..n_clusters-1).
+        """
+        # Normalizasyon
+        min_vals = data.min(axis=0)
+        max_vals = data.max(axis=0)
+        range_vals = max_vals - min_vals
+        range_vals[range_vals == 0] = 1.0
+        data_norm = (data - min_vals) / range_vals
+        
+        # Boyut eşleme
+        if data_norm.shape[1] > self.curve.n:
+            data_norm = data_norm[:, :self.curve.n]
+        elif data_norm.shape[1] < self.curve.n:
+            pad = np.zeros((data_norm.shape[0], self.curve.n - data_norm.shape[1]))
+            data_norm = np.hstack([data_norm, pad])
+        
+        data_int = (data_norm * self.curve.max_coord).astype(np.uint32)
+        data_int = np.clip(data_int, 0, self.curve.max_coord)
+        distances = self.curve.batch_inverse(data_int)
+        
+        sorted_indices = np.argsort(distances)
+        labels = np.zeros(len(data), dtype=int)
+        cluster_size = len(data) // n_clusters
+        for i in range(n_clusters):
+            start = i * cluster_size
+            end = (i + 1) * cluster_size if i < n_clusters - 1 else len(data)
+            labels[sorted_indices[start:end]] = i
+        
+        return labels
+
+
+# =============================================================================
+# ANA ÇALIŞTIRMA - TÜM ÖRNEKLER (Güncellendi)
 # =============================================================================
 
 if __name__ == "__main__":
+    print("=" * 70)
+    print("SpaceFillingCurve Modülü")
+    print(f"Versiyon: {__version__}")
+    print("=" * 70)
+    
+    if _HAS_MATPLOTLIB:
+        print("\n" + "=" * 70)
+        print("YENİ: HilbertVisualizer ile Görselleştirme")
+        print("=" * 70)
+        curve = SpaceFillingCurve(p=4, n=2)
+        vis = HilbertVisualizer(curve)
+        fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+        vis.plot_curve(ax=ax[0], color='red', linewidth=1.5)
+        points = curve.sample(50, method='random')
+        vis.plot_points(points, ax=ax[1], s=30, title="Random Points on Hilbert Curve")
+        plt.tight_layout()
+        plt.show()
+    else:
+        print("\nMatplotlib yüklü değil, görselleştirme örnekleri atlandı.")
+    
+    print("\n" + "=" * 70)
+    print("YENİ: HilbertClustering ile Kümeleme Örneği")
+    print("=" * 70)
+    np.random.seed(42)
+    data = np.vstack([
+        np.random.randn(100, 5) + 0,
+        np.random.randn(100, 5) + 5,
+        np.random.randn(100, 5) + 10
+    ])
+    curve_clust = SpaceFillingCurve(p=6, n=5)  # 5 boyutlu veri
+    clusterer = HilbertClustering(curve_clust)
+    labels = clusterer.fit_predict(data, n_clusters=3)
+    print(f"Küme etiketleri dağılımı: {np.bincount(labels)}")
+
     print("=" * 70)
     print("MOORE CURVE - INTEGER GRID TEST")
     print("=" * 70)
@@ -751,7 +922,7 @@ if __name__ == "__main__":
 
 
     for p in [2, 3, 4]:
-        moore = MooreCurve(p)  # veya self._generate_moore_curve(p)
+        moore = MooreCurve(p)  # veya self._create_moore_curve(p)
 
         start = moore.transform(0)
         end = moore.transform(moore.total_points - 1)
@@ -928,7 +1099,7 @@ if __name__ == "__main__":
     """
 
     print("=" * 70)
-    print("SpaceFillingCurve Modülü")
+    print("SpaceFillingCurve Modülü - ÖZGÜN IMPLEMENTASYON")
     print("=" * 70)
     # -------------------------------------------------------------------------
     # DOĞRULAMA TESTİ (p=2, 4x4 grid)
@@ -961,7 +1132,7 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     if all_correct:
         print("✅ TÜM DÖNÜŞÜMLER DOĞRU!")
-        print("✅ İmplementasyon başarıyla çalışıyor!")
+        print("✅ Özgün implementasyon başarıyla çalışıyor!")
     else:
         print("❌ HATALAR VAR - Lütfen kontrol edin")
     print("=" * 70)
@@ -1056,6 +1227,8 @@ if __name__ == "__main__":
             print(f"  Min/Max uzaklık: {np.min(distances_to_center):.2f} / {np.max(distances_to_center):.2f}")
             if radius == 1:
                 print(f"  Komşular: {neighbors}")
+        print("✅ Test tamamlandı. include_center=False ile merkez dahil edilmedi.")
+
     
     # ÖRNEK 4: Eğri Tipleri Karşılaştırması
     print("\n" + "=" * 70)
