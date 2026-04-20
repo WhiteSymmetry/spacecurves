@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spacecurves"
-version = "0.1.2"
+version = "0.1.3"
 dynamic = ["keywords", "maintainers"]
 license = "GPL-3.0-or-later"  # SPDX ID
 
@@ -23,10 +23,10 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization",
 ]
 
-dependencies = ["numpy"]
+dependencies = ["numpy", "matplotlib"]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov", "pytest-mock", "ruff", "numpy"]
+test = ["pytest", "pytest-cov", "pytest-mock", "ruff", "numpy", "matplotlib"]
 
 [tool.setuptools.packages.find]
 where = ["."]
