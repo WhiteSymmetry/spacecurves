@@ -438,3 +438,59 @@ Bu proje **GNU Affero General Public License v3.0 (AGPL-3.0-or-later)** ile lisa
 
 
 ```
+
+---
+
+# Pixi:
+
+[![Pixi](https://img.shields.io/badge/Pixi-Pixi-brightgreen.svg)](https://prefix.dev/channels/bilgi)
+
+pixi init spacecurves
+
+cd spacecurves
+
+pixi workspace channel add [https://prefix.dev/channels/bilgi](https://prefix.dev/channels/bilgi) --prepend
+
+✔ Added https://prefix.dev/channels/bilgi
+
+pixi add spacecurves
+
+✔ Added spacecurves >=...,<1
+
+pixi install
+
+pixi shell
+
+pixi run python -c "import spacecurves; print(spacecurves.__version__)"
+
+### Çıktı: 
+
+pixi remove spacecurves
+
+conda install -c https://prefix.dev/channels/bilgi spacecurves
+
+pixi run python -c "import spacecurves; print(spacecurves.__version__)"
+
+### Çıktı: 
+
+pixi run pip list | grep spacecurves
+
+### spacecurves  
+
+pixi run pip show spacecurves
+
+Name: spacecurves
+
+Version: 
+
+Summary: Keçeci Numbers: Keçeci Sayıları (Keçeci Conjecture)
+
+Home-page: https://github.com/WhiteSymmetry/spacecurves
+
+Author: Mehmet Keçeci
+
+Author-email: Mehmet Keçeci <...>
+
+License: GNU AFFERO GENERAL PUBLIC LICENSE
+
+Copyright (c) 2025-2026 Mehmet Keçeci
