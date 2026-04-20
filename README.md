@@ -498,3 +498,9 @@ Author-email: Mehmet Keçeci <...>
 License: GNU AFFERO GENERAL PUBLIC LICENSE
 
 Copyright (c) 2025-2026 Mehmet Keçeci
+
+----
+
+1. https://pypi.org/project/spacecurves/
+2. https://anaconda.org/bilgi/spacecurves
+3. https://prefix.dev/channels/bilgi/packages/spacecurves
