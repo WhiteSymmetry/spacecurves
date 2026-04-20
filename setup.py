@@ -23,6 +23,7 @@ def get_install_requires():
     """Kurulum bağımlılıklarını dinamik olarak belirle"""
     base_requires = [
         "numpy",
+        "matplotlib",
     ]
 
 setup(
