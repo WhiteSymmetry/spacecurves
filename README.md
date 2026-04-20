@@ -101,6 +101,8 @@
 - **Hilbert ordering**: Spatial data organization
 - **Grid system**: Hilbert-based data structure
 - **Path optimization**: TSP-like route optimization
+- Görselleştirme araçları (HilbertVisualizer)
+- Yaklaşık kümeleme (HilbertClustering)
 
 ### 🚀 Quick Start
 
