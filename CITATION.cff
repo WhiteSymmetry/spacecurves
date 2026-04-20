@@ -16,7 +16,7 @@ authors:
     orcid: 'https://orcid.org/0000-0001-9937-9839'
 identifiers:
   - type: doi
-    value: 
+    value: 10.5281/zenodo.19672791
 repository-code: 'https://github.com/WhiteSymmetry/spacecurves'
 url: 'https://github.com/WhiteSymmetry/spacecurves'
 repository: 'https://anaconda.org/bilgi/spacecurves'
