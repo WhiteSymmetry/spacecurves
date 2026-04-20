@@ -9,7 +9,7 @@ Bu modül, Hilbert eğrisi ve diğer uzay dolduran eğriler için
 tüm özellikleri içeren eksiksiz bir implementasyon sunar.
 
 Özellikler:
-- 1-10 derinlik (2^p grid)
+- 1-16 derinlik (2^p grid)
 - 1-5 boyut desteği
 - 4 farklı eğri tipi (Hilbert, Morton, Moore, Altair)
 - Önbellek desteği
@@ -20,13 +20,15 @@ tüm özellikleri içeren eksiksiz bir implementasyon sunar.
 - Hilbert sıralama
 - Grid sistemi
 - Rota optimizasyonu
+- Görselleştirme araçları (HilbertVisualizer)
+- Yaklaşık kümeleme (HilbertClustering)
 """
 
 from __future__ import annotations
 import warnings
 
 # Paket sürüm numarası
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __author__ = "Mehmet Keçeci"
 __email__ = "mkececi@yaani.com"
 __description__ = "Space Curves (spacecurves, Uzay Eğrileri): Uzay Dolduran Eğriler Modülü"
@@ -41,7 +43,9 @@ from .spacecurves import (
     HilbertDimensionReducer,
     HilbertOrdering,
     HilbertGrid,
-    HilbertPathOptimizer
+    HilbertPathOptimizer,
+    HilbertVisualizer,      # Yeni eklendi
+    HilbertClustering       # Yeni eklendi
 )
 
 # Public API - from * import ile erişilebilenler
@@ -58,6 +62,8 @@ __all__ = [
     'HilbertOrdering',
     'HilbertGrid',
     'HilbertPathOptimizer',
+    'HilbertVisualizer',    # Yeni eklendi
+    'HilbertClustering'     # Yeni eklendi
 ]
 
 # Paket yüklendiğinde kısa bilgi
