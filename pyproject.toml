@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spacecurves"
-version = "0.1.3"
+version = "0.1.4"
 dynamic = ["keywords", "maintainers"]
 license = "GPL-3.0-or-later"  # SPDX ID
 
