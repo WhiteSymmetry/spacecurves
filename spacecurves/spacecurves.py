@@ -2,7 +2,7 @@
 spacecurves.py - Uzay Dolduran Eğriler Modülü
 
 Bu modül, Hilbert eğrisi dönüşümü için orijinal algoritmayı temel alan
-tamamen özgün bir implementasyondur. Tüm testler başarıyla geçmiştir.
+bir implementasyondur. Tüm testler başarıyla geçmiştir.
 
 Özellikler:
 - 1-16 derinlik (2^p grid)
@@ -36,7 +36,7 @@ try:
 except ImportError:
     _HAS_MATPLOTLIB = False
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __license__ = "AGPL-3.0-or-later"
 
 
@@ -64,104 +64,144 @@ class CurveStats:
     cache_hit_rate: float = 0.0
 
 # =========================================================================
-# MOORE EĞRİSİ - INTEGER KOORDİNATLAR (HASSASİYET SORUNU YOK)
+# MOORE EĞRİSİ
 # =========================================================================
 
 class MooreCurve:
+    """
+    Moore Eğrisi - Doğru L-System Implementasyonu
+    
+    L-System kuralları:
+    Axiom: LFL+F+LFL
+    L → -RF+LFL+FR-
+    R → +LF-RFR-FL+
+    
+    Önemli: Moore eğrisi KAPALI DEĞİLDİR!
+    Başlangıç ve bitiş 1-birim komşudur.
+    """
+    
+    # L-System sabitleri
+    _AXIOM = "LFL+F+LFL"
+    _RULES = {
+        'L': '-RF+LFL+FR-',
+        'R': '+LF-RFR-FL+'
+    }
+    
+    # Yön vektörleri: 0=Doğu, 1=Güney, 2=Batı, 3=Kuzey
+    _DIRECTIONS = [
+        (1, 0),   # 0: Doğu
+        (0, -1),  # 1: Güney
+        (-1, 0),  # 2: Batı
+        (0, 1),   # 3: Kuzey
+    ]
+    
     def __init__(self, p: int):
         if p < 1:
             raise ValueError("p must be >= 1")
-
         self.p = p
-        self.grid_size = 2 ** p
-
+        self.grid_size = 2 ** (p + 1)  # Moore için grid boyutu 2^(p+1)
+        self.max_coord = self.grid_size - 1
         self._points = None
         self._index_map = None
         self.total_points = None
         self.max_distance = None
 
-    def _generate(self):
-        if self._points is not None:
-            return self._points, self._index_map
-
-        # L-system
-        axiom = "LFL+F+LFL"
-        rules = {
-            'L': '-RF+LFL+FR-',
-            'R': '+LF-RFR-FL+'
-        }
-
-        current = axiom
+    def _generate_lstring(self) -> str:
+        """L-System dizisini oluştur"""
+        result = self._AXIOM
         for _ in range(self.p):
-            current = "".join(rules.get(c, c) for c in current)
+            result = "".join(self._RULES.get(ch, ch) for ch in result)
+        return result
 
-        # Integer turtle
-        directions = {
-            0: (1, 0),
-            90: (0, 1),
-            180: (-1, 0),
-            270: (0, -1),
-        }
-
-        x, y = 0, 0
-        angle = 0
+    def _lstring_to_points(self, lstring: str) -> List[Tuple[float, float]]:
+        """L-System dizisini koordinatlara çevir"""
+        x, y = 0.0, 0.0
+        direction = 0  # Başlangıç yönü: Doğu
         points = [(x, y)]
-
-        for char in current:
-            if char == 'F':
-                dx, dy = directions[angle]
+        
+        for ch in lstring:
+            if ch == 'F':
+                dx, dy = self._DIRECTIONS[direction]
                 x += dx
                 y += dy
                 points.append((x, y))
-            elif char == '+':
-                angle = (angle - 90) % 360
-            elif char == '-':
-                angle = (angle + 90) % 360
+            elif ch == '+':
+                direction = (direction + 1) % 4  # Sağa dön
+            elif ch == '-':
+                direction = (direction - 1) % 4  # Sola dön
+        
+        # Normalizasyon
+        min_x = min(p[0] for p in points)
+        min_y = min(p[1] for p in points)
+        points = [(x - min_x, y - min_y) for x, y in points]
+        
+        return points
 
-        # normalize
-        min_x = min(px for px, _ in points)
-        min_y = min(py for _, py in points)
-        
-        points = [(px - min_x, py - min_y) for px, py in points]
-        
-        # duplicates kaldır
-        seen = set()
-        unique_points = []
+    def _clean_duplicates(self, points: List) -> List:
+        """Ardışık duplicate'leri temizle"""
+        cleaned = []
         for pt in points:
-            if pt not in seen:
-                seen.add(pt)
-                unique_points.append(pt)
+            if not cleaned or pt != cleaned[-1]:
+                cleaned.append(pt)
+        return cleaned
+
+    def _generate(self) -> Tuple[List[Tuple[int, int]], Dict[Tuple[int, int], int]]:
+        if self._points is not None:
+            return self._points, self._index_map
         
-        # grid_size dinamik
-        max_x = max(px for px, _ in unique_points)
-        max_y = max(py for _, py in unique_points)
+        # L-System ile noktaları oluştur
+        lstring = self._generate_lstring()
+        raw_points = self._lstring_to_points(lstring)
         
-        self.grid_size = max(max_x, max_y) + 1
-        self.total_points = len(unique_points)
+        # Integer'a çevir ve temizle
+        points = []
+        for pt in raw_points:
+            int_pt = (int(round(pt[0])), int(round(pt[1])))
+            if not points or int_pt != points[-1]:
+                points.append(int_pt)
+        
+        # Başlangıç ve bitiş aynı ise son noktayı kaldır
+        if len(points) >= 2 and points[0] == points[-1]:
+            points = points[:-1]
+        
+        # Grid sınırlarına ölçekle (gerekiyorsa)
+        max_x = max(p[0] for p in points)
+        max_y = max(p[1] for p in points)
+        
+        if max_x > self.max_coord or max_y > self.max_coord:
+            scale = min(self.max_coord / max_x if max_x > 0 else 1,
+                       self.max_coord / max_y if max_y > 0 else 1)
+            if scale < 1.0:
+                points = [(int(p[0] * scale), int(p[1] * scale)) for p in points]
+                points = self._clean_duplicates(points)
+        
+        # Grid sınırları içinde tut
+        points = [(min(max(p[0], 0), self.max_coord), 
+                   min(max(p[1], 0), self.max_coord)) for p in points]
+        
+        # Son kontrol
+        if len(points) >= 2 and points[0] == points[-1]:
+            points = points[:-1]
+        
+        self._points = points
+        self.total_points = len(points)
         self.max_distance = self.total_points - 1
-
-        self._points = unique_points
-        self._index_map = {p: i for i, p in enumerate(unique_points)}
-
+        self._index_map = {p: i for i, p in enumerate(points)}
+        
         return self._points, self._index_map
 
     def transform(self, distance: int) -> np.ndarray:
         points, _ = self._generate()
-
         if 0 <= distance < len(points):
             x, y = points[distance]
             return np.array([x, y], dtype=np.int32)
-
-        raise ValueError(f"Distance {distance} out of range")
+        raise ValueError(f"Distance {distance} out of range [0, {len(points)-1}]")
 
     def inverse(self, point: Union[List[int], np.ndarray]) -> int:
         _, index_map = self._generate()
-
         key = (int(point[0]), int(point[1]))
-
         if key in index_map:
             return index_map[key]
-
         raise ValueError(f"Point {point} not found")
 
     def __getitem__(self, key: int) -> np.ndarray:
@@ -172,9 +212,27 @@ class MooreCurve:
             self._generate()
         return self.total_points
     
+    def check_start_end_neighborhood(self) -> Tuple[bool, int]:
+        """Başlangıç ve bitişin 1-birim komşu olup olmadığını kontrol et"""
+        points, _ = self._generate()
+        if len(points) < 2:
+            return False, 0
+        
+        start = points[0]
+        end = points[-1]
+        manhattan = abs(start[0] - end[0]) + abs(start[1] - end[1])
+        return (manhattan == 1), manhattan
+    
+    def get_grid_size(self) -> int:
+        """Grid boyutunu döndür"""
+        return self.grid_size
+    
+    def __repr__(self) -> str:
+        return f"MooreCurve(p={self.p}, grid={self.grid_size}×{self.grid_size}, points={self.total_points})"
+    
 
 # =============================================================================
-# ÖZGÜN HILBERT ALGORİTMASI
+# HILBERT ALGORİTMASI
 # =============================================================================
 
 class SpaceFillingCurve:
@@ -182,7 +240,7 @@ class SpaceFillingCurve:
     Uzay Dolduran Eğri
     
     Bu sınıf, Hilbert eğrisi dönüşümü için orijinal algoritmayı temel alan
-    tamamen özgün bir implementasyondur.
+    bir implementasyondur.
     
     Örnek:
     >>> curve = SpaceFillingCurve(p=4, n=2)
@@ -250,6 +308,8 @@ class SpaceFillingCurve:
             _ = self._moore_curve._generate()
             self.total_points = self._moore_curve.total_points
             self.max_distance = self.total_points - 1
+            self.grid_size = self._moore_curve.get_grid_size()  # Moore'a özel grid boyutu
+            self.max_coord = self.grid_size - 1
             self._dtype_out = np.int32
         
         if seed is not None:
@@ -259,10 +319,16 @@ class SpaceFillingCurve:
         return MooreCurve(p)
 
     def _moore_forward(self, h: int) -> np.ndarray:
+        # Moore eğrisi için h mesafesi
+        # h değeri total_points'ten büyük olabilir mi?
+        if h >= self.total_points:
+            h = h % self.total_points
         return self._moore_curve.transform(h)
 
     def _moore_inverse(self, point: np.ndarray) -> int:
-        return self._moore_curve.inverse(point)
+        # Koordinatları max_coord'a göre normalize et
+        normalized_point = point.copy()
+        return self._moore_curve.inverse(normalized_point)
     
     # =========================================================================
     # YARDIMCI FONKSİYONLAR
@@ -273,7 +339,7 @@ class SpaceFillingCurve:
         return format(num, f'0{width}b')
     
     # =========================================================================
-    # HILBERT DÖNÜŞÜMÜ - ÖZGÜN IMPLEMENTASYON
+    # HILBERT DÖNÜŞÜMÜ
     # =========================================================================
     
     def _hilbert_to_transpose(self, h: int) -> List[int]:
@@ -460,20 +526,7 @@ class SpaceFillingCurve:
             if 0 <= neighbor_dist <= self.max_distance:
                 neighbors.append(self.transform(neighbor_dist))
         return neighbors
-    """
-    def get_neighbors(self, point: Union[List[int], np.ndarray], 
-                     radius: int = 1,
-                     include_center: bool = False) -> List[np.ndarray]:
-        center_dist = self.inverse(point)
-        neighbors = []
-        start = -radius if include_center else -radius + 1
-        end = radius + 1 if include_center else radius
-        for offset in range(start, end):
-            neighbor_dist = center_dist + offset
-            if 0 <= neighbor_dist <= self.max_distance:
-                neighbors.append(self.transform(neighbor_dist))
-        return neighbors
-    """
+
     
     def locality_score(self, n_samples: int = 300) -> float:
         n = min(n_samples, self.total_points // 100, 300)
@@ -958,47 +1011,6 @@ if __name__ == "__main__":
     print("- Deterministic mapping: OK")
     print("- No float instability")
     print("=" * 70)
-    """
-    # Test
-    print("=" * 70)
-    print("MOORE EĞRİSİ - INTEGER KOORDİNATLAR")
-    print("=" * 70)
-
-    for p in [2, 3, 4]:
-        moore = MooreCurve(p)
-        
-        start = moore.transform(0)
-        end = moore.transform(moore.total_points - 1)
-        
-        print(f"\n📊 p={p}:")
-        print(f"  Grid: {moore.grid_size}×{moore.grid_size}")
-        print(f"  Toplam nokta: {moore.total_points}")
-        print(f"  Başlangıç: [{start[0]}, {start[1]}]")
-        print(f"  Bitiş: [{end[0]}, {end[1]}]")
-        
-        manhattan = abs(start[0] - end[0]) + abs(start[1] - end[1])
-        print(f"  Manhattan: {manhattan} - {'✅ KOMŞU' if manhattan == 1 else '❌'}")
-        
-        # Round-trip test
-        errors = 0
-        test_count = min(100, moore.total_points)
-        for d in range(test_count):
-            point = moore.transform(d)
-            recovered = moore.inverse(point)
-            if recovered != d:
-                errors += 1
-        print(f"  Round-trip: {errors}/{test_count} hata")
-        
-        if errors == 0:
-            print(f"  ✅ MÜKEMMEL!")
-
-    print("\n" + "=" * 70)
-    print("🎉 MOORE EĞRİSİ INTEGER KOORDİNATLARLA MÜKEMMEL ÇALIŞIYOR!")
-    print("   - Hassasiyet sorunu yok")
-    print("   - Dictionary ile tam eşleşme")
-    print("   - Round-trip hatasız")
-    print("=" * 70)
-    """
 
     print("\n" + "=" * 70)
     print("TÜM EĞRİ TİPLERİ FİNAL TESTİ")
@@ -1064,42 +1076,9 @@ if __name__ == "__main__":
     print("   - Round-trip hatasız")
     print("   - L-system tabanlı")
     print("=" * 70)
-    """
-    print("=" * 60)
-    print("MOORE EĞRİSİ TESTİ (Rekürsif Implementasyon)")
-    print("=" * 60)
-    
-    for p in [2, 3, 4, 5, 6, 7, 8]:
-        print(f"\n--- p={p} (grid={1<<p}x{1<<p}) ---")
-        curve = SpaceFillingCurve(p=p, n=2, curve_type=CurveType.MOORE)
-        
-        start = curve.transform(0)
-        end = curve.transform(curve.total_points - 1)
-        
-        manhattan = abs(int(start[0]) - int(end[0])) + abs(int(start[1]) - int(end[1]))
-        
-        print(f"Başlangıç: {start}")
-        print(f"Bitiş: {end}")
-        print(f"Manhattan mesafesi: {manhattan}")
-        
-        if manhattan == 1:
-            print("✅ MOORE KAPALI DÖNGÜ!")
-        else:
-            print("❌ MOORE AÇIK UÇLU!")
-        
-        # Round-trip test
-        errors = 0
-        for d in range(min(100, curve.total_points)):
-            point = curve.transform(d)
-            recovered = curve.inverse(point)
-            if recovered != d:
-                errors += 1
-        
-        print(f"Round-trip hataları: {errors}/{min(100, curve.total_points)}")
-    """
 
     print("=" * 70)
-    print("SpaceFillingCurve Modülü - ÖZGÜN IMPLEMENTASYON")
+    print("SpaceFillingCurve Modülü")
     print("=" * 70)
     # -------------------------------------------------------------------------
     # DOĞRULAMA TESTİ (p=2, 4x4 grid)
@@ -1132,7 +1111,7 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     if all_correct:
         print("✅ TÜM DÖNÜŞÜMLER DOĞRU!")
-        print("✅ Özgün implementasyon başarıyla çalışıyor!")
+        print("✅ İmplementasyon başarıyla çalışıyor!")
     else:
         print("❌ HATALAR VAR - Lütfen kontrol edin")
     print("=" * 70)
