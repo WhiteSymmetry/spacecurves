@@ -34,8 +34,8 @@ setup(
     long_description_content_type="text/markdown",
     author="Mehmet Keçeci",
     maintainer="Mehmet Keçeci",
-    author_email="mkececi@yaani.com",
-    maintainer_email="mkececi@yaani.com",
+    author_email="enfo@tuta.io",
+    maintainer_email="enfo@tuta.io",
     url="https://github.com/WhiteSymmetry/spacecurves",
     packages=find_packages(),
     package_data={
