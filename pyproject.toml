@@ -1,7 +1,7 @@
 # pyproject.toml
 
 [build-system]
-requires = ["setuptools>=82.0.1"]
+requires = ["setuptools>=84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,7 +11,7 @@ dynamic = ["keywords", "maintainers"]
 license = "GPL-3.0-or-later"  # SPDX ID
 
 authors = [
-    { name="Mehmet Keçeci", email="mkececi@yaani.com" },
+    { name="Mehmet Keçeci", email="enfo@tuta.io" },
 ]
 description = "Space Curves (spacecurves, Uzay Eğrileri): Uzay Dolduran Eğriler Modülü"
 readme = "README.md"
