@@ -36,7 +36,7 @@ try:
 except ImportError:
     _HAS_MATPLOTLIB = False
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __license__ = "AGPL-3.0-or-later"
 
 
