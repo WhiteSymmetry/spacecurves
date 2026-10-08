@@ -28,9 +28,9 @@ from __future__ import annotations
 import warnings
 
 # Paket sürüm numarası
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __author__ = "Mehmet Keçeci"
-__email__ = "mkececi@yaani.com"
+__email__ = "enfo@tuta.io"
 __description__ = "Space Curves (spacecurves, Uzay Eğrileri): Uzay Dolduran Eğriler Modülü"
 
 # Ana Sınıflar
