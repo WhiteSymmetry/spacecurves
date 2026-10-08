@@ -4,11 +4,11 @@ authors = ["Mehmet Keçeci <enfo@tuta.io>"]
 channels = ["pypi", "https://prefix.dev/conda-forge", "https://conda.modular.com/max-nightly", "conda-forge", "https://repo.prefix.dev/modular-community"]
 platforms = ["linux-64"]
 name = "spacecurves"
-version = "0.1.4"
+version = "0.1.5"
 
 [package]
 name = "spacecurves"
-version = "0.1.4"
+version = "0.1.5"
 license = "AGPL-3.0-or-later"
 
 [dependencies]
