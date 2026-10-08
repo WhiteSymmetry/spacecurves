@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spacecurves"
-version = "0.1.4"
+version = "0.1.5"
 dynamic = ["keywords", "maintainers"]
-license = "GPL-3.0-or-later"  # SPDX ID
+license = "AGPL-3.0-or-later"  # SPDX ID
 
 authors = [
     { name="Mehmet Keçeci", email="enfo@tuta.io" },
